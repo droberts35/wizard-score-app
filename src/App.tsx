@@ -507,23 +507,33 @@ const App: React.FC = () => {
 
                     <div style={{ marginTop: 12 }}>
                       <button onClick={submitRoundForSelectedGame} disabled={selectedGame?.players.length === 0}>
-      End Round / Compute Scores
-    </button>
+                        End Round / Compute Scores
+                      </button>
 
-    <button
-      onClick={() => {
-        if (!selectedGame) return;
-        if (selectedGame.completed) return;
-        const ok = window.confirm('Finalize this game and record wins/losses? This cannot be undone.');
-        if (!ok) return;
-        finalizeGame(selectedGame);
-      }}
-      disabled={selectedGame?.completed}
-      style={{ marginLeft: 8 }}
-    >
-      {selectedGame?.completed ? 'Game Finalized' : 'End Game (record result)'}
-    </button>
+                      <button
+                        onClick={() => {
+                          if (!selectedGame) return;
+                          if (selectedGame.completed) return;
+                          const ok = window.confirm('Finalize this game and record wins/losses? This cannot be undone.');
+                          if (!ok) return;
+                          finalizeGame(selectedGame);
+                        }}
+                        disabled={selectedGame?.completed}
+                        style={{ marginLeft: 8 }}
+                      >
+                        {selectedGame?.completed ? 'Game Finalized' : 'End Game (record result)'}
+                      </button>
                     </div>
+
+                    <section style={{ marginTop: 20 }}>
+                      <h3>Scoreboard</h3>
+                      <Scoreboard
+                        players={selectedGame.players}
+                        history={selectedGame.history}
+                        roundsCount={selectedGame.roundsCount}
+                        dealers={selectedGame.dealers}
+                      />
+                    </section>
                   </div>
                 </>
               )}

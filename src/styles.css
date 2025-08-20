@@ -22,6 +22,21 @@ button {
   overflow-x: auto;
 }
 
+/* DEBUG: force scoreboard visible and hide overlay while debugging */
+.scoreboard-card {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  outline: 3px solid rgba(0,128,0,0.25) !important;
+  background: #fff !important;
+}
+
+.overlay {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .score-table {
   width: 100%;
   border-collapse: collapse;
@@ -204,6 +219,39 @@ button {
   .cell-inline { min-height: 34px; gap: 6px; }
   .cell-total { min-width: 36px; width: 36px; }
   .round-detail-inline { min-width: 46px; padding: 3px 6px; }
+
+  /* Ensure scoreboard is visible and scrollable on small screens */
+  .content {
+    display: block;
+    min-height: 0; /* allow children to shrink/scroll inside */
+  }
+
+  /* make the scoreboard a full-width, scrollable card with a sensible max height */
+  .scoreboard-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 12px 0;
+    max-height: calc(100vh - 180px); /* reserves header + other UI; adjust if needed */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* keep table full width but allow horizontal scrolling if needed */
+  .score-table {
+    width: 100%;
+    min-width: 640px; /* keeps table readable; allows horizontal scroll on very small screens */
+  }
+
+  /* reduce sticky header footprint on small screens */
+  .score-table thead th {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .score-table tbody td {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
 }
 
 /* larger screens: ensure sidebar behaves as a column */
