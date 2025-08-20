@@ -43,6 +43,15 @@ button {
   font-size: 14px;
 }
 
+/* 1) Add visible grid lines so each cell is distinct */
+.score-table {
+  border-collapse: collapse; /* already set, reinforce */
+}
+.score-table thead th,
+.score-table tbody td {
+  border: 1px solid #e9ecef;
+}
+
 .score-table thead th {
   background: #0d6efd;
   color: #fff;
@@ -57,6 +66,49 @@ button {
   padding: 8px 10px;
   border-bottom: 1px solid #ececec;
   text-align: center;
+}
+
+/* 2) Reserve left space in every round cell so the dealer pill doesn't shift content */
+.score-table .round-cell {
+  /* reserve same left gutter for all round cells */
+  padding-left: 30px !important;
+  box-sizing: border-box;
+}
+
+/* keep the dealer pill behavior but only show it for dealer cells */
+.score-table .round-cell::before {
+  content: "";
+  display: none;
+}
+.score-table .round-cell.dealer::before {
+  content: "D";
+  display: inline-flex;
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 11px;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+/* 3) Slightly tighten padding inside cells now that borders exist */
+.score-table thead th,
+.score-table tbody td {
+  padding: 6px 6px;
+}
+
+/* 4) Small-screen adjustments (keep gutter a bit smaller) */
+@media (max-width: 520px) {
+  .score-table .round-cell { padding-left: 26px !important; }
+  .score-table .round-cell.dealer::before { left: 4px; width: 16px; height: 16px; font-size: 10px; }
+  .score-table thead th, .score-table tbody td { padding: 4px 4px !important; }
 }
 
 .player-col {
@@ -74,7 +126,7 @@ button {
 
 /* Make round cells a fixed, centered layout so dealer badge doesn't shift content */
 .round-cell {
-  padding: 8px 6px;
+  padding: 4px 4px;        /* less vertical/horizontal padding */
   vertical-align: middle;
 }
 
@@ -83,44 +135,73 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;                /* slightly tighter inline gap */
   position: relative; /* for absolute-positioned dealer badge */
-  min-height: 40px;
+  min-height: 30px;
 }
 
-/* consistent width for cumulative total to align columns */
-.cell-total {
-  min-width: 44px;
-  width: 44px;
+/* Override: aggressively tighten gap between score and bids */
+.score-table .cell-inline {
+  gap: 2px !important;             /* reduce flex gap */
+  align-items: center;
+}
+
+.score-table .cell-inline .cell-total {
+  margin: 0;
+  padding: 0 4px;                  /* minimal horizontal padding */
+  min-width: 22px !important;
+  width: 22px !important;
+  font-size: 12px;
   text-align: center;
-  font-weight: 700;
 }
 
-/* ensure bid/actual has predictable width so rows align */
-.round-detail-inline {
-  min-width: 64px;
-  text-align: center;
-  padding: 4px 8px;
-  border-radius: 6px;
+.score-table .cell-inline .round-detail-inline {
+  margin: 0;
+  padding: 0 4px;                  /* minimal horizontal padding */
+  min-width: 16px !important;
+  font-size: 11px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* dealer badge positioned absolutely so it doesn't affect flow */
-.dealer-badge {
+/* hide the old absolutely-positioned badge so it can't overlap */
+.score-table .dealer-badge {
+  display: none !important;
+}
+
+/* make dealer round cells reserve space on the left and add subtle tint + border */
+.score-table .round-cell.dealer {
+  position: relative;
+  padding-left: 30px; /* reserve room for pill */
+  background: rgba(13,110,253,0.03);
+  border-left: 4px solid rgba(13,110,253,0.16);
+}
+
+/* small 'D' pill shown inside the reserved left area */
+.score-table .round-cell.dealer::before {
+  content: "D";
   position: absolute;
-  right: 6px;
+  left: 6px;
   top: 50%;
   transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #0d6efd;
   color: #fff;
   font-size: 11px;
-  width: 20px;
-  height: 20px;
   border-radius: 4px;
-  line-height: 1;
   box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+/* on very small screens keep the pill slightly smaller */
+@media (max-width: 420px) {
+  .score-table .round-cell.dealer { padding-left: 26px; }
+  .score-table .round-cell.dealer::before { left: 4px; width: 16px; height: 16px; font-size: 10px; }
 }
 
 /* responsive tweak for very narrow screens */
@@ -292,4 +373,138 @@ button {
 .round-cell.dealer {
   background: rgba(13,110,253,0.04); /* subtle blue tint */
   border-left: 3px solid rgba(13,110,253,0.18);
+}
+
+/* tighter scoreboard layout for small screens */
+@media (max-width: 520px) {
+  .scoreboard-card { padding: 6px; margin: 6px 0; }
+
+  /* use fixed layout and a smaller min-width so fewer columns force horizontal scroll */
+  .score-table { table-layout: fixed; min-width: 300px; }
+
+  /* shrink player column / truncate names */
+  .player-col {
+    width: 88px !important;
+    padding-left: 6px !important;
+  }
+  .player-col .name,
+  .player-col > * {
+    max-width: 72px;
+    font-size: 12px;
+  }
+
+  /* tighten header / cell padding and font */
+  .score-table thead th,
+  .score-table tbody td {
+    padding: 3px 4px !important;
+    font-size: 11px !important;
+  }
+
+  /* much narrower round columns and details */
+  .round-cell { min-width: 22px !important; max-width: 28px !important; padding: 2px 4px !important; }
+  .cell-inline { gap: 2px !important; min-height: 24px !important; }
+  .cell-total { min-width: 20px !important; width: 20px !important; font-size: 11px !important; padding: 0 2px !important; }
+  .round-detail-inline {
+    min-width: 14px !important;
+    padding: 1px 4px !important;
+    font-size: 10px !important;
+  }
+
+  /* nudge dealer badge smaller */
+  .dealer-badge { width: 14px !important; height: 14px !important; font-size: 9px !important; right: 2px !important; }
+
+  /* allow smooth horizontal scroll but keep things dense */
+  .scoreboard-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Slightly looser but still compact for small tablets / narrow desktop */
+@media (min-width: 521px) and (max-width: 800px) {
+  .score-table { table-layout: fixed; min-width: 420px; }
+  .player-col { width: 110px; padding-left: 8px; }
+  .round-cell { min-width: 26px; padding: 2px 4px; }
+  .cell-total { min-width: 22px; width: 22px; }
+  .round-detail-inline { min-width: 16px; padding: 2px 4px; font-size: 11px; }
+  .score-table thead th, .score-table tbody td { padding: 4px 6px; font-size: 12px; }
+}
+
+/* bid result highlights: green for hit, red for miss */
+.round-detail-inline.bid-hit {
+  background: #eaf8ed;            /* light green */
+  border: 1px solid #c6eace;
+  color: #116938;                 /* dark green text */
+  font-weight: 600;
+  transition: background-color 160ms, border-color 160ms;
+}
+
+.round-detail-inline.bid-miss {
+  background: #fbeaea;            /* light red */
+  border: 1px solid #f5c6c6;
+  color: #8a1b1b;                 /* dark red text */
+  font-weight: 600;
+  transition: background-color 160ms, border-color 160ms;
+}
+
+/* subtle emphasis for the surrounding cell so it's clearer in tight layouts */
+.score-table .cell-inline > .round-detail-inline.bid-hit,
+.score-table .cell-inline > .round-detail-inline.bid-miss {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+/* small-screen tweak: keep compact but visible */
+@media (max-width: 520px) {
+  .round-detail-inline.bid-hit,
+  .round-detail-inline.bid-miss {
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+}
+
+/* Tiny tweaks: smaller dealer pill and nudge cell contents left */
+.score-table .round-cell {
+  padding-left: 26px !important; /* reserve slightly less gutter */
+}
+
+.score-table .round-cell.dealer::before {
+  left: 4px !important;
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 10px !important;
+}
+
+/* Force-perfect center for dealer pill */
+.score-table .round-cell.dealer::before {
+  left: 4px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 15px !important;
+  height: 15px !important;
+  line-height: 15px !important;       /* match height for text centering fallback */
+  font-size: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  border-radius: 3px !important;
+}
+
+/* small left nudge for inline contents so bids sit off the right edge */
+.score-table .cell-inline {
+  transform: translateX(-3px); /* previously -2px; extra pixel to clear edge */
+}
+
+/* tiny negative offset on the bid pill to pull it closer to the score */
+.score-table .cell-inline .round-detail-inline {
+  margin-left: -1px !important;
+  padding: 0 3px !important;
+}
+
+/* small-screen adjustments */
+@media (max-width: 420px) {
+  .score-table .round-cell { padding-left: 24px !important; }
+  .score-table .round-cell.dealer::before { left: 3px !important; width: 14px !important; height: 14px !important; font-size: 9px !important; }
+  .score-table .cell-inline { transform: translateX(-1px); }
+  .score-table .round-detail-inline { padding: 0 2px !important; }
 }

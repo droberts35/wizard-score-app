@@ -70,7 +70,7 @@ const Scoreboard: React.FC<{
       <table className="score-table">
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', paddingLeft: 12 }}>Round</th>
+            <th style={{ textAlign: 'left', paddingLeft: 12 }} aria-hidden="true">&nbsp;</th>
             {players.map(p => (
               <th key={p.id}>{p.name}</th>
             ))}
