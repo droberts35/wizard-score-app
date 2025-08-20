@@ -1,0 +1,40 @@
+{
+  "name": "wizard-score-app",
+  "version": "1.0.0",
+  "description": "A scoring application for the Wizard card game.",
+  "main": "src/App.ts",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.4",
+    "ts-node": "^10.4.0",
+    "jest": "^27.0.6",
+    "@types/jest": "^27.0.1",
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.2",
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wizard-score-app.git"
+  },
+  "keywords": [
+    "wizard",
+    "card game",
+    "scoring",
+    "typescript",
+    "react"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

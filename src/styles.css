@@ -1,0 +1,182 @@
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin: 0;
+  padding: 16px;
+  background: #f8f9fa;
+  color: #111;
+}
+
+button {
+  cursor: pointer;
+  padding: 6px 10px;
+  margin-right: 8px;
+}
+
+/* Scorecard table styling */
+.scoreboard-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.score-table thead th {
+  background: #0d6efd;
+  color: #fff;
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.score-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #ececec;
+  text-align: center;
+}
+
+.player-col {
+  text-align: left;
+  padding-left: 12px;
+  width: 160px;
+}
+
+.total-col {
+  font-weight: 700;
+  text-align: right;
+  padding-right: 12px;
+  width: 90px;
+}
+
+.round-cell {
+  min-width: 110px;
+  vertical-align: middle;
+  padding: 8px 10px;
+}
+
+/* inline layout: total + bid/actual to the right */
+.cell-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* emphasize cumulative total */
+.cell-total {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 46px;
+  text-align: center;
+}
+
+/* color for positive / negative / zero totals */
+.cell-total.pos { color: #0f5132; }   /* green */
+.cell-total.neg { color: #842029; }   /* red */
+.cell-total.zero { color: #333; opacity: 0.95; }
+
+/* bid/actual highlight */
+.round-detail-inline {
+  font-size: 13px;
+  color: #6c757d;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* success (hit bid) */
+.round-detail-inline.bid-hit {
+  color: #0f5132;
+  background: rgba(15,81,50,0.08);
+  font-weight: 700;
+}
+
+/* miss (didn't hit bid) */
+.round-detail-inline.bid-miss {
+  color: #842029;
+  background: rgba(132,32,41,0.06);
+  font-weight: 700;
+}
+
+/* responsive tweak for very narrow screens */
+@media (max-width: 420px) {
+  .cell-inline {
+    gap: 6px;
+  }
+  .cell-total { font-size: 16px; min-width: 40px; }
+  .round-detail-inline { font-size: 12px; padding: 3px 6px; }
+}
+
+/* responsive tweaks */
+@media (max-width: 640px) {
+  .player-col { width: 120px; }
+  .round-cell { min-width: 72px; font-size: 13px; }
+}
+
+/* header/nav */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-title { font-weight: 700; font-size: 18px; }
+
+.app-nav button {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.app-nav button.active {
+  background: #0d6efd;
+  color: #fff;
+}
+
+/* responsive layout: stack on small screens */
+@media (max-width: 800px) {
+  .scoreboard-card { overflow-x: auto; }
+  /* stack GamesList above main content */
+  .app-main { display: block; }
+  .app-main > div { margin-bottom: 12px; }
+}
+
+/* keep table scrollable on small screens */
+.score-table { width: 100%; }
+.scoreboard-card { overflow-x: auto; }
+
+.round-cell.dealer {
+  background: rgba(13,110,253,0.04); /* subtle blue tint */
+  border-left: 3px solid rgba(13,110,253,0.18);
+}
+
+.dealer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  margin-left: 8px;
+  line-height: 1;
+}
