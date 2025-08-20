@@ -57,64 +57,63 @@ button {
   width: 90px;
 }
 
+/* Make round cells a fixed, centered layout so dealer badge doesn't shift content */
 .round-cell {
-  min-width: 110px;
+  padding: 8px 6px;
   vertical-align: middle;
-  padding: 8px 10px;
 }
 
-/* inline layout: total + bid/actual to the right */
+/* inline cell layout: center contents, reserve space, allow absolute badge */
 .cell-inline {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+  position: relative; /* for absolute-positioned dealer badge */
+  min-height: 40px;
 }
 
-/* emphasize cumulative total */
+/* consistent width for cumulative total to align columns */
 .cell-total {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
-  min-width: 46px;
+  min-width: 44px;
+  width: 44px;
   text-align: center;
+  font-weight: 700;
 }
 
-/* color for positive / negative / zero totals */
-.cell-total.pos { color: #0f5132; }   /* green */
-.cell-total.neg { color: #842029; }   /* red */
-.cell-total.zero { color: #333; opacity: 0.95; }
-
-/* bid/actual highlight */
+/* ensure bid/actual has predictable width so rows align */
 .round-detail-inline {
-  font-size: 13px;
-  color: #6c757d;
-  white-space: nowrap;
+  min-width: 64px;
+  text-align: center;
   padding: 4px 8px;
   border-radius: 6px;
 }
 
-/* success (hit bid) */
-.round-detail-inline.bid-hit {
-  color: #0f5132;
-  background: rgba(15,81,50,0.08);
-  font-weight: 700;
-}
-
-/* miss (didn't hit bid) */
-.round-detail-inline.bid-miss {
-  color: #842029;
-  background: rgba(132,32,41,0.06);
-  font-weight: 700;
+/* dealer badge positioned absolutely so it doesn't affect flow */
+.dealer-badge {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  line-height: 1;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
 /* responsive tweak for very narrow screens */
 @media (max-width: 420px) {
-  .cell-inline {
-    gap: 6px;
-  }
-  .cell-total { font-size: 16px; min-width: 40px; }
-  .round-detail-inline { font-size: 12px; padding: 3px 6px; }
+  .cell-inline { gap: 6px; min-height: 36px; }
+  .cell-total { min-width: 36px; width: 36px; font-size: 14px; }
+  .round-detail-inline { min-width: 48px; font-size: 12px; padding: 3px 6px; }
+  .dealer-badge { width: 18px; height: 18px; font-size: 10px; right: 4px; }
 }
 
 /* responsive tweaks */
@@ -165,18 +164,4 @@ button {
 .round-cell.dealer {
   background: rgba(13,110,253,0.04); /* subtle blue tint */
   border-left: 3px solid rgba(13,110,253,0.18);
-}
-
-.dealer-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #0d6efd;
-  color: #fff;
-  font-size: 11px;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  margin-left: 8px;
-  line-height: 1;
 }

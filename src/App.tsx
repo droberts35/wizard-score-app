@@ -422,15 +422,43 @@ const App: React.FC = () => {
                     </button>
                   </div>
 
+                  {/* Round bids with live state (over / under / even) */}
                   <div style={{ marginTop: 12 }}>
-                    <h3>Round {selectedGame.roundsCount + 1} — Enter bids</h3>
-                    {selectedGame.players.map(p => (
-                      <div key={p.id} style={{ marginBottom: 6 }}>
-                        <label style={{ marginRight: 8 }}>{p.name}</label>
-                        <input type="number" min={0} value={bids[p.id] ?? ''} onChange={e => setBids(prev => ({ ...prev, [p.id]: Number(e.target.value) }))} style={{ width: 80, marginRight: 12 }} />
-                        <span style={{ color: '#666' }}>bid</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const roundNumber = selectedGame.roundsCount + 1;
+                      const cardsPerPlayer = roundNumber;
+                      const sumBids = selectedGame.players.reduce((s, p) => s + (Number(bids[p.id] ?? 0)), 0);
+                      const diff = sumBids - cardsPerPlayer;
+                      const overallState = diff === 0 ? 'even' : (diff > 0 ? 'over' : 'under');
+                      const diffLabel = diff === 0 ? 'Even' : (diff > 0 ? `${diff} over` : `${Math.abs(diff)} under`);
+                      return (
+                        <>
+                          <h3>Round {roundNumber} — Enter bids</h3>
+                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+                            <div style={{ fontSize: 13, color: '#666' }}>Cards each: {cardsPerPlayer}</div>
+                            <div className={`bid-status ${overallState}`} >
+                              Bids total: {sumBids} — {diffLabel}
+                            </div>
+                          </div>
+  
+                          {selectedGame.players.map(p => {
+                            return (
+                              <div key={p.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <label style={{ width: 140 }}>{p.name}</label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={bids[p.id] ?? ''}
+                                  onChange={e => setBids(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                                  style={{ width: 80 }}
+                                />
+                                <span style={{ color: '#666' }}>bid</span>
+                              </div>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div style={{ marginTop: 12 }}>
