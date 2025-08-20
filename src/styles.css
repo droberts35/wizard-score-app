@@ -149,13 +149,93 @@ button {
   color: #fff;
 }
 
-/* responsive layout: stack on small screens */
-@media (max-width: 800px) {
-  .scoreboard-card { overflow-x: auto; }
-  /* stack GamesList above main content */
-  .app-main { display: block; }
-  .app-main > div { margin-bottom: 12px; }
+/* mobile / drawer styles */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  padding: 6px 10px;
 }
+
+/* Sidebar defaults (desktop inline column) */
+.sidebar { display: block; }
+
+/* overlay (hidden by default) */
+.overlay { display: none; }
+
+/* mobile adjustments */
+@media (max-width: 800px) {
+  /* show hamburger, collapse layout into a single column */
+  .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+  .app-nav { display: none; } /* collapse header nav on mobile to save space */
+  .app-main { display: block; }
+
+  /* Sidebar becomes an off-canvas drawer */
+  .sidebar {
+    position: fixed;
+    top: 56px; /* header height */
+    left: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 320px;
+    background: #fff;
+    z-index: 30;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    transform: translateX(-110%);
+    transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+    overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* overlay visible when sidebar open */
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    background: rgba(0,0,0,0.35);
+  }
+
+  /* make main content full width when drawer is closed */
+  .scoreboard-card, .app-main > div { margin-left: 0; }
+
+  /* make table more compact on phones */
+  .cell-inline { min-height: 34px; gap: 6px; }
+  .cell-total { min-width: 36px; width: 36px; }
+  .round-detail-inline { min-width: 46px; padding: 3px 6px; }
+}
+
+/* larger screens: ensure sidebar behaves as a column */
+@media (min-width: 801px) {
+  /* ensure the app main is a horizontal flex container on desktop */
+  .app-main {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  /* sidebar stays fixed width and stretches vertically */
+  .sidebar {
+    flex: 0 0 240px;
+    align-self: stretch;
+    position: relative !important;
+    transform: none !important;
+    z-index: 1;
+  }
+
+  /* content fills remaining space */
+  .content {
+    flex: 1 1 auto;
+    min-width: 0; /* allow internal children to shrink properly */
+    z-index: 2;
+    padding-left: 16px;
+  }
+}
+
+/* small usability tweaks */
+.app-header { align-items: center; }
+.app-header .app-title { flex: 1; }
 
 /* keep table scrollable on small screens */
 .score-table { width: 100%; }

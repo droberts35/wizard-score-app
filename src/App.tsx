@@ -19,6 +19,7 @@ function uid() {
 }
 
 const App: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [games, setGames] = useState<Game[]>(() => loadGames());
   const [playersRegistry, setPlayersRegistry] = useState<PlayerStats[]>(() => loadPlayers());
   const [selectedGameId, setSelectedGameId] = useState<string | undefined>(games[0]?.id);
@@ -105,6 +106,13 @@ const App: React.FC = () => {
   useEffect(() => { saveGames(games); }, [games]);
   useEffect(() => { savePlayers(playersRegistry); }, [playersRegistry]);
 
+  // ensure drawer doesn't stay open when resizing back to desktop
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth >= 801) setSidebarOpen(false); };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  
   useEffect(() => {
     if (!selectedGameId && games.length) setSelectedGameId(games[0].id);
   }, [games, selectedGameId]);
@@ -291,10 +299,17 @@ const App: React.FC = () => {
   return (
     <div>
       <header className="app-header">
+        <button
+          className="mobile-menu-btn"
+          aria-label="Open games"
+          onClick={() => setSidebarOpen(v => !v)}
+        >
+          ☰
+        </button>
         <div className="app-title">Wizard Score</div>
         <nav className="app-nav">
-          <button className={page === 'games' ? 'active' : ''} onClick={() => setPage('games')}>Games</button>
-          <button className={page === 'players' ? 'active' : ''} onClick={() => setPage('players')}>Players</button>
+          <button className={page === 'games' ? 'active' : ''} onClick={() => { setPage('games'); setSidebarOpen(false); }}>Games</button>
+          <button className={page === 'players' ? 'active' : ''} onClick={() => { setPage('players'); setSidebarOpen(false); }}>Players</button>
         </nav>
       </header>
 
@@ -306,220 +321,218 @@ const App: React.FC = () => {
           onRename={(id, name) => updatePlayerName(id, name)}
         />
       ) : (
-        <div style={{ display: 'flex', gap: 16 }}>
-          <div>
+        <div className="app-main">
+          {/* Sidebar / Games list */}
+          <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
             <GamesList
               games={games}
               selectedId={selectedGameId}
-              onSelect={(id) => { setSelectedGameId(id); setPage('games'); }}
+              onSelect={(id) => { setSelectedGameId(id); setPage('games'); setSidebarOpen(false); }}
               onDelete={(id) => { deleteGame(id); }}
-              onNew={createNewGame}
+              onNew={() => { createNewGame(); setSidebarOpen(false); }}
             />
           </div>
 
-          <div style={{ flex: 1 }}>
-            <h2>{selectedGame ? selectedGame.name : 'No game selected'}</h2>
-            {!selectedGame && <div>Select or create a game.</div>}
+          {/* main content area */}
+          <div className="content" style={{ flex: 1 }}>
+            {/* overlay for mobile when sidebar is open */}
+            {sidebarOpen && <div className="overlay" onClick={() => setSidebarOpen(false)} />}
+            <div>
+              <h2>{selectedGame ? selectedGame.name : 'No game selected'}</h2>
+              {!selectedGame && <div>Select or create a game.</div>}
 
-            {selectedGame && (
-              <>
-                <div style={{ marginTop: 8 }}>
-                  <h3>Players in game</h3>
+              {selectedGame && (
+                <>
+                  <div style={{ marginTop: 8 }}>
+                    <h3>Players in game</h3>
 
-                  {selectedGame.roundsCount === 0 && (
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                      <div>
-                        <PlayerInput
-                          onAdd={(name) => {
-                            const pstats = addPlayerToRegistry(name);
-                            setGames(prev => prev.map(g => {
-                              if (g.id !== selectedGame.id) return g;
-                              if (g.players.some(p => p.id === pstats.id)) return g;
-                              return { ...g, players: [...g.players, { id: pstats.id, name: pstats.name }] };
-                            }));
-                          }}
-                        />
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <select
-                          multiple
-                          value={selectedRegistryPlayers}
-                          onChange={e => {
-                            const opts = Array.from(e.target.selectedOptions).map(o => o.value);
-                            setSelectedRegistryPlayers(opts);
-                          }}
-                          style={{ padding: 6, minWidth: 200, height: 120 }}
-                        >
-                          {playersRegistry.map(r => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
-                          ))}
-                        </select>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <button
-                            onClick={() => {
-                              addRegistryPlayersToSelectedGame(selectedRegistryPlayers);
-                              setSelectedRegistryPlayers([]);
+                    {selectedGame.roundsCount === 0 && (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                        <div>
+                          <PlayerInput
+                            onAdd={(name) => {
+                              const pstats = addPlayerToRegistry(name);
+                              setGames(prev => prev.map(g => {
+                                if (g.id !== selectedGame.id) return g;
+                                if (g.players.some(p => p.id === pstats.id)) return g;
+                                return { ...g, players: [...g.players, { id: pstats.id, name: pstats.name }] };
+                              }));
                             }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <select
+                            multiple
+                            value={selectedRegistryPlayers}
+                            onChange={e => {
+                              const opts = Array.from(e.target.selectedOptions).map(o => o.value);
+                              setSelectedRegistryPlayers(opts);
+                            }}
+                            style={{ padding: 6, minWidth: 200, height: 120 }}
                           >
-                            Add selected
-                          </button>
-                          <button onClick={() => setSelectedRegistryPlayers([])}>Clear</button>
-                        </div>
-                      </div>
-
-                      <div style={{ minWidth: 220 }}>
-                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
-                          Reorder players (top = first to receive dealer rotation)
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {selectedGame.players.map((p, idx) => (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', padding: 6, borderRadius: 6 }}>
-                              <div style={{ width: 18, textAlign: 'center', color: '#666' }}>{idx + 1}</div>
-                              <div style={{ flex: 1 }}>{p.name}</div>
-                              <div style={{ display: 'flex', gap: 6 }}>
-                                <button onClick={() => movePlayerUp(selectedGame.id, idx)} disabled={idx === 0}>↑</button>
-                                <button onClick={() => movePlayerDown(selectedGame.id, idx)} disabled={idx === selectedGame.players.length - 1}>↓</button>
-                                <button onClick={() => removePlayerFromGame(selectedGame.id, p.id)}>Remove</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* player list intentionally hidden once the game has started */}
-
-                  {/* Dealer controls for upcoming round */}
-                  <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <strong>Dealer (Round {selectedGame.roundsCount + 1}):</strong>
-                    <select
-                      value={selectedGame.dealers?.[selectedGame.roundsCount + 1] ?? getDealerForRound(selectedGame, selectedGame.roundsCount + 1) ?? ''}
-                      onChange={e => setDealerForRound(selectedGame.id, selectedGame.roundsCount + 1, e.target.value)}
-                    >
-                      {selectedGame.players.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => {
-                        const next = getDealerForRound(selectedGame, selectedGame.roundsCount + 1);
-                        if (!next) return;
-                        const idx = selectedGame.players.findIndex(p => p.id === next);
-                        const newIdx = (idx + 1) % Math.max(1, selectedGame.players.length);
-                        setDealerForRound(selectedGame.id, selectedGame.roundsCount + 1, selectedGame.players[newIdx].id);
-                      }}
-                    >
-                      Rotate
-                    </button>
-                    <button
-                      onClick={() => {
-                        setGames(prev => prev.map(g => g.id === selectedGame.id ? ({ ...g, dealers: (() => { const d = { ...(g.dealers || {}) }; delete d[selectedGame.roundsCount + 1]; return d; })() }) : g));
-                      }}
-                    >
-                      Clear
-                    </button>
-                  </div>
-
-                  {/* Round bids with live state (over / under / even) */}
-                  <div style={{ marginTop: 12 }}>
-                    {(() => {
-                      const roundNumber = selectedGame.roundsCount + 1;
-                      const cardsPerPlayer = roundNumber;
-                      const sumBids = selectedGame.players.reduce((s, p) => s + (Number(bids[p.id] ?? 0)), 0);
-                      const diff = sumBids - cardsPerPlayer;
-                      const overallState = diff === 0 ? 'even' : (diff > 0 ? 'over' : 'under');
-                      const diffLabel = diff === 0 ? 'Even' : (diff > 0 ? `${diff} over` : `${Math.abs(diff)} under`);
-                      return (
-                        <>
-                          <h3>Round {roundNumber} — Enter bids</h3>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-                            <div style={{ fontSize: 13, color: '#666' }}>Cards each: {cardsPerPlayer}</div>
-                            <div className={`bid-status ${overallState}`} >
-                              Bids total: {sumBids} — {diffLabel}
-                            </div>
+                            {playersRegistry.map(r => (
+                              <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                          </select>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <button
+                              onClick={() => {
+                                addRegistryPlayersToSelectedGame(selectedRegistryPlayers);
+                                setSelectedRegistryPlayers([]);
+                              }}
+                            >
+                              Add selected
+                            </button>
+                            <button onClick={() => setSelectedRegistryPlayers([])}>Clear</button>
                           </div>
-  
-                          {selectedGame.players.map(p => {
-                            return (
-                              <div key={p.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <label style={{ width: 140 }}>{p.name}</label>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={bids[p.id] ?? ''}
-                                  onChange={e => setBids(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
-                                  style={{ width: 80 }}
-                                />
-                                <span style={{ color: '#666' }}>bid</span>
+                        </div>
+
+                        <div style={{ minWidth: 220 }}>
+                          <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
+                            Reorder players (top = first to receive dealer rotation)
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {selectedGame.players.map((p, idx) => (
+                              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', padding: 6, borderRadius: 6 }}>
+                                <div style={{ width: 18, textAlign: 'center', color: '#666' }}>{idx + 1}</div>
+                                <div style={{ flex: 1 }}>{p.name}</div>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <button onClick={() => movePlayerUp(selectedGame.id, idx)} disabled={idx === 0}>↑</button>
+                                  <button onClick={() => movePlayerDown(selectedGame.id, idx)} disabled={idx === selectedGame.players.length - 1}>↓</button>
+                                  <button onClick={() => removePlayerFromGame(selectedGame.id, p.id)}>Remove</button>
+                                </div>
                               </div>
-                            );
-                          })}
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  <div style={{ marginTop: 12 }}>
-                    <h3>Round {selectedGame.roundsCount + 1} — Enter tricks won</h3>
-                    {selectedGame.players.map(p => (
-                      <div key={p.id} style={{ marginBottom: 6 }}>
-                        <label style={{ marginRight: 8 }}>{p.name}</label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={selectedGame.roundsCount + 1}
-                          value={tricks[p.id] ?? ''}
-                          onChange={e => setTricks(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
-                          style={{ width: 80, marginRight: 12 }}
-                        />
-                        <span style={{ color: '#666' }}>tricks won</span>
-                      </div>
-                    ))}
-
-                    {roundError && (
-                      <div style={{ marginTop: 8, color: '#842029', background: '#fff1f2', padding: 8, borderRadius: 6 }}>
-                        {roundError}
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
+
+                    {/* player list intentionally hidden once the game has started */}
+
+                    {/* Dealer controls for upcoming round */}
+                    <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <strong>Dealer (Round {selectedGame.roundsCount + 1}):</strong>
+                      <select
+                        value={selectedGame.dealers?.[selectedGame.roundsCount + 1] ?? getDealerForRound(selectedGame, selectedGame.roundsCount + 1) ?? ''}
+                        onChange={e => setDealerForRound(selectedGame.id, selectedGame.roundsCount + 1, e.target.value)}
+                      >
+                        {selectedGame.players.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => {
+                          const next = getDealerForRound(selectedGame, selectedGame.roundsCount + 1);
+                          if (!next) return;
+                          const idx = selectedGame.players.findIndex(p => p.id === next);
+                          const newIdx = (idx + 1) % Math.max(1, selectedGame.players.length);
+                          setDealerForRound(selectedGame.id, selectedGame.roundsCount + 1, selectedGame.players[newIdx].id);
+                        }}
+                      >
+                        Rotate
+                      </button>
+                      <button
+                        onClick={() => {
+                          setGames(prev => prev.map(g => g.id === selectedGame.id ? ({ ...g, dealers: (() => { const d = { ...(g.dealers || {}) }; delete d[selectedGame.roundsCount + 1]; return d; })() }) : g));
+                        }}
+                      >
+                        Clear
+                      </button>
+                    </div>
+
+                    {/* Round bids with live state (over / under / even) */}
+                    <div style={{ marginTop: 12 }}>
+                      {(() => {
+                        const roundNumber = selectedGame.roundsCount + 1;
+                        const cardsPerPlayer = roundNumber;
+                        const sumBids = selectedGame.players.reduce((s, p) => s + (Number(bids[p.id] ?? 0)), 0);
+                        const diff = sumBids - cardsPerPlayer;
+                        const overallState = diff === 0 ? 'even' : (diff > 0 ? 'over' : 'under');
+                        const diffLabel = diff === 0 ? 'Even' : (diff > 0 ? `${diff} over` : `${Math.abs(diff)} under`);
+                        return (
+                          <>
+                            <h3>Round {roundNumber} — Enter bids</h3>
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+                              <div style={{ fontSize: 13, color: '#666' }}>Cards each: {cardsPerPlayer}</div>
+                              <div className={`bid-status ${overallState}`} >
+                                Bids total: {sumBids} — {diffLabel}
+                              </div>
+                            </div>
+    
+                            {selectedGame.players.map(p => {
+                              return (
+                                <div key={p.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12 }}>
+                                  <label style={{ width: 140 }}>{p.name}</label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={bids[p.id] ?? ''}
+                                    onChange={e => setBids(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                                    style={{ width: 80 }}
+                                  />
+                                  <span style={{ color: '#666' }}>bid</span>
+                                </div>
+                              );
+                            })}
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      <h3>Round {selectedGame.roundsCount + 1} — Enter tricks won</h3>
+                      {selectedGame.players.map(p => (
+                        <div key={p.id} style={{ marginBottom: 6 }}>
+                          <label style={{ marginRight: 8 }}>{p.name}</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={selectedGame.roundsCount + 1}
+                            value={tricks[p.id] ?? ''}
+                            onChange={e => setTricks(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                            style={{ width: 80, marginRight: 12 }}
+                          />
+                          <span style={{ color: '#666' }}>tricks won</span>
+                        </div>
+                      ))}
+
+                      {roundError && (
+                        <div style={{ marginTop: 8, color: '#842029', background: '#fff1f2', padding: 8, borderRadius: 6 }}>
+                          {roundError}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      <button onClick={submitRoundForSelectedGame} disabled={selectedGame?.players.length === 0}>
+      End Round / Compute Scores
+    </button>
+
+    <button
+      onClick={() => {
+        if (!selectedGame) return;
+        if (selectedGame.completed) return;
+        const ok = window.confirm('Finalize this game and record wins/losses? This cannot be undone.');
+        if (!ok) return;
+        finalizeGame(selectedGame);
+      }}
+      disabled={selectedGame?.completed}
+      style={{ marginLeft: 8 }}
+    >
+      {selectedGame?.completed ? 'Game Finalized' : 'End Game (record result)'}
+    </button>
+                    </div>
                   </div>
-
-                  <div style={{ marginTop: 12 }}>
-                    <button onClick={submitRoundForSelectedGame} disabled={selectedGame.players.length === 0}>End Round / Compute Scores</button>
-
-                    <button
-                      onClick={() => {
-                        if (!selectedGame) return;
-                        if (selectedGame.completed) return;
-                        const ok = window.confirm('Finalize this game and record wins/losses? This cannot be undone.');
-                        if (!ok) return;
-                        finalizeGame(selectedGame);
-                      }}
-                      disabled={selectedGame.completed}
-                      style={{ marginLeft: 8 }}
-                    >
-                      {selectedGame.completed ? 'Game Finalized' : 'End Game (record result)'}
-                    </button>
-                  </div>
-
-                  <section style={{ marginTop: 20 }}>
-                    <h3>Scoreboard</h3>
-                    <Scoreboard
-                      players={selectedGame.players}
-                      history={selectedGame.history}
-                      roundsCount={selectedGame.roundsCount}
-                      dealers={selectedGame.dealers}
-                    />
-                  </section>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-};
+}
 
 export default App;
